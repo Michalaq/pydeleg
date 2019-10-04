@@ -1,0 +1,16 @@
+tripno: 1
+name: Bartosza Michalaka
+startdate: 1.09.2019
+enddate: 9.09.2019
+destcity: Amsterdamu
+objective: wdrożenie systemu u klienta docelowego
+transportmean: samolot
+signature: Bartosz Michalak
+
+trips: simple
+startcity: Warszawa
+endcity: Amsterdam
+dephour: 16:45
+arrivalthere: 18:55
+backhour: 16:45
+arrivalhere: 18:55

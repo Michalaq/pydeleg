@@ -1,0 +1,83 @@
+\documentclass{article}
+\usepackage[margin=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{colortbl}
+\hyphenpenalty=10000
+
+\definecolor{Gray}{gray}{0.85}
+\newcolumntype{a}{>{\columncolor{Gray}}c}
+
+\begin{document}
+
+\title{\textbf{Rachunek kosztów podróży nr \VAR{tripno} z dnia \VAR{startdate} r.}}
+\author{dla \VAR{name} \\ do \VAR{destcity}}
+\date{}
+\maketitle
+
+\subsection*{}
+\begin{center}
+        na czas od \VAR{startdate} do \VAR{enddate}, w celu: wdrożenie systemu u klienta docelowego
+\end{center}
+
+\section{Środki transportu:}
+
+\begin{center}
+ \begin{tabular}{| c |  c | c |  c |  c |  c |}
+%% for means in [["pociąg", "autbous", "służbowy samochód"], ["samolot", "samochód niefirmowy", "inny .........."]]
+  \hline
+%% set counter = 0
+%% for x in means
+  %% if x not in ["pociąg", "samolot"]
+    &
+  %% endif
+  %% if transportmean == x
+    X
+  %% else
+    
+  %%endif
+  & \VAR{x}
+%% endfor
+  \\
+  \hline
+%% endfor
+\end{tabular}
+\end{center}
+
+\section{Rachunek kosztów podróży}
+\begin{center}
+ \begin{tabular}{|| c | c | c | c | c | c | p{3cm} | p{2cm} ||} 
+  \hline
+  \rowcolor{Gray}
+  \multicolumn{3}{||c|}{\textbf{WYJAZD}}&\multicolumn{3}{|c|}{\textbf{PRZYJAZD}}& \textbf{Środek} & \textbf{Koszty} \\
+  \hline
+  \textbf{Miejscowość} & \textbf{Data} & \textbf{Godzina} & \textbf{Miejscowość} & \textbf{Data} & \textbf{Godzina} & \multicolumn{1}{a|}{} & \multicolumn{1}{a||}{} \\
+%% for fromcity, fromdate, fromhour, tocity, todate, tohour, mean in trips
+  \hline
+  \VAR{fromcity} & \VAR{fromdate} & \VAR{fromhour} & \VAR{tocity} & \VAR{todate} & \VAR{tohour} & \VAR{mean} & \\
+%% endfor
+  \hline
+  \multicolumn{6}{||c|}{} & Diety & \VAR{dietval} \VAR{dietcur} \\ 
+  \cline{7-8}
+  \multicolumn{6}{||c|}{} & Noclegi wg rachunków & \\
+  \cline{7-8}
+  \multicolumn{6}{||c|}{} & Inne wydatki wg załączników & \\
+  \cline{7-8}
+  \multicolumn{6}{||c|}{} & \multicolumn{1}{a|}{RAZEM} & \multicolumn{1}{a||}{\VAR{dietval} \VAR{dietcur}} \\
+  \hline
+  \multicolumn{8}{||l||}{\footnotesize{\textit{Słownie: \VAR{dietvalword}}}} \\
+  \hline
+\end{tabular}
+\end{center}
+
+
+\subsection{Załączone dowody}
+\textbf{Liczba załączonych dowodów:} 0
+
+\subsection*{}
+
+\hfill \begin{tabular}{p{1cm} c p{1cm}} & \VAR{signature} & \\ \hline  & \footnotesize{\textit{Podpis przedsiębiorcy}} & \\ \end{tabular} \\
+\\
+
+\end{document}
