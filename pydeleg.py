@@ -4,14 +4,12 @@ from jinja2 import Template
 from subprocess import call
 from argparse import ArgumentParser
 from pandas import Timestamp, Timedelta, to_datetime
+from number_to_word import number_to_word
 
 city_diets = {
     'Amsterdam': (50, 'EUR'),
     'Paryż': (50, 'EUR'),
-}
-
-currencies = {
-    'EUR': ('euro', 'centów')
+    'Poznań': (30, 'PLN'),
 }
 
 latex_jinja_env = jinja2.Environment(
@@ -25,7 +23,7 @@ latex_jinja_env = jinja2.Environment(
     line_comment_prefix = '%#',
     trim_blocks = True,
     autoescape = False,
-    loader = jinja2.FileSystemLoader(os.path.abspath('.'))
+    loader = jinja2.FileSystemLoader(os.path.abspath('./templates'))
 )
 
 def create_simple_trips(rest_args, args):
@@ -74,95 +72,28 @@ def calc_diets(trip_args, breakfasts=0, lunches=0, dinners=0):
     full_days = period.days
     rest = period - Timedelta(days=full_days)
     diets = perdiem * full_days
-    if rest.components.hours <= 8:
-        diets += 0.33333 * perdiem
-    elif 8 < rest.components.hours <= 12:
-        diets += 0.5 * perdiem
-    else:
-        diets += perdiem
-
-    diets -= 0.15 * perdiem * breakfasts
-    diets -= 0.3 * perdiem * lunches
-    diets -= 0.3 * perdiem * dinners
-    return diets, cur
-
-
-def number_to_word(number, currency='EUR'):
-    jednostki = {
-        1: 'jeden',
-        2: 'dwa',
-        3: 'trzy',
-        4: 'cztery',
-        5: 'pięć',
-        6: 'sześć',
-        7: 'siedem',
-        8: 'osiem',
-        9: 'dziewięć'
-    }
-    nastki = {
-        1: 'jedenaście',
-        2: 'dwanaście',
-        3: 'trzynaście',
-        4: 'czternaście',
-        5: 'piętnaście',
-        6: 'szesnaście',
-        7: 'siedemnaście',
-        8: 'osiemnaście',
-        9: 'dziewiętnaście'
-    }
-    dziesiatki = {
-        1: 'dziesięć',
-        2: 'dwadzieścia',
-        3: 'trzydzieści',
-        4: 'czterdzieści',
-        **{v: jednostki[v] + 'dziesiąt' for v in range(5, 10)}
-    }
-    setki = {
-        1: 'sto',
-        2: 'dwieście',
-        3: 'trzysta',
-        4: 'czterysta',
-        **{v: jednostki[v] + 'set' for v in range(5, 10)}
-    }
-    tysiace = {
-        1: 'tysiąc',
-        2: 'tysiące',
-        3: 'tysiące',
-        4: 'tysiące'
-    }
-    ret = []
-    if number // 10 ** 6:
-        ret.append('milion')
-        number %= 10 ** 6
-    if number // 10 ** 5:
-        tmp = number // 10 ** 5
-        ret.append(setki[tmp])
-        number %= 10 ** 5 
-    if number // 10 ** 4:
-        tmp = number // 10 ** 4
-        ret.append(dziesiatki[tmp])
-        number %= 10 ** 4
-    if number // 10 ** 3:
-        tmp = number // 10 ** 3
-        ret.extend([jednostki[tmp], tysiace.get(tmp, 'tysięcy')])
-        number %= 10 ** 3
-    if number // 10 ** 2:
-        tmp = number // 10 ** 2
-        ret.append(setki[tmp])
-        number %= 10 ** 2
-    if number // 10:
-        tmp = number // 10
-        jednostki = int(number % 10)
-        if tmp > 1 or jednostki == 0:
-            ret.append(dziesiatki[tmp])
+    domestic = cur.lower() == 'pln'
+    if not domestic:
+        if rest.components.hours <= 8:
+            diets += 0.33333 * perdiem
+        elif 8 < rest.components.hours <= 12:
+            diets += 0.5 * perdiem
         else:
-            ret.append(nastki[jednostki])
-    else:
-        ret.append(jednostki[int(number % 10)])
-    reszta = f'{number % 1 * 100:0.0f}'
-    waluta, koncowki = currencies[currency]
-    calak = ' '.join(ret)
-    return f'{calak} {waluta} i {reszta} {koncowki}'
+            diets += perdiem
+
+        diets -= 0.15 * perdiem * breakfasts
+        diets -= 0.3 * perdiem * lunches
+        diets -= 0.3 * perdiem * dinners
+    else:  # domestic
+        if rest.components.hours <= 8:
+            diets += 0.5 * perdiem
+        else:
+            diets += perdiem
+
+        diets -= 0.25 * perdiem * breakfasts
+        diets -= 0.5 * perdiem * lunches
+        diets -= 0.25 * perdiem * dinners
+    return diets, cur
 
 
 if __name__ == '__main__':
@@ -185,8 +116,5 @@ if __name__ == '__main__':
     path = f'/tmp/{base}.tex'
     with open(path, 'w') as f:
         f.write(s)
-    call(['pdflatex', path])
-    call(['rm', '-rf', f'{base}.log', f'{base}.aux'])
-
-
-
+    call(['pdflatex', '-output-directory=./outputs', path])
+    call(['rm', '-rf', f'./outputs/{base}.log', f'./outputs/{base}.aux'])

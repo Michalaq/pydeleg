@@ -1,0 +1,16 @@
+tripno: 1/5/2021
+name: Jana Kowalskiego
+startdate: 5.05.2021
+enddate: 10.05.2021
+destcity: Amsterdamu
+objective: wizyta biznesowa
+transportmean: samolot
+signature: Jan Kowalski
+
+trips: simple
+startcity: Warszawa
+endcity: Amsterdam
+dephour: 12:20
+arrivalthere: 14:25
+backhour: 9:40
+arrivalhere: 11:35

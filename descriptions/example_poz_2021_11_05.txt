@@ -1,0 +1,16 @@
+tripno: 1/11/2019
+name: Jana Kowalskiego
+startdate: 5.11.2019
+enddate: 13.11.2019
+destcity: Poznania
+objective: wdrożenie systemu u klienta docelowego
+transportmean: pociąg
+signature: Jan Kowalski
+
+trips: simple
+startcity: Warszawa
+endcity: Poznań
+dephour: 9:36
+arrivalthere: 12:25
+backhour: 15:33
+arrivalhere: 18:28

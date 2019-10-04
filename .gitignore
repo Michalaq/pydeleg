@@ -1,0 +1,7 @@
+*.txt
+*.pdf
+*.aux
+*.log
+__pycache__
+
+!example*
