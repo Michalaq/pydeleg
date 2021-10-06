@@ -1,6 +1,7 @@
 currencies = {
     'EUR': ('euro', 'centów'),
-    'PLN': ('złotych', 'groszy')
+    'PLN': ('złotych', 'groszy'),
+    'GBP': ('funtów', 'pensów')
 }
 
 
@@ -54,7 +55,7 @@ def number_to_word(number, currency='EUR'):
     if number // 10 ** 5:
         tmp = number // 10 ** 5
         ret.append(setki[tmp])
-        number %= 10 ** 5 
+        number %= 10 ** 5
     if number // 10 ** 4:
         tmp = number // 10 ** 4
         ret.append(dziesiatki[tmp])

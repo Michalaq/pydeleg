@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage[margin=1.5cm]{geometry}
+\usepackage[margin=0.5cm]{geometry}
 \usepackage{graphicx}
 \usepackage{polski}
 \usepackage[utf8]{inputenc}
@@ -35,7 +35,7 @@
   %% if transportmean == x
     X
   %% else
-    
+
   %%endif
   & \VAR{x}
 %% endfor
@@ -47,26 +47,26 @@
 
 \section{Rachunek kosztów podróży}
 \begin{center}
- \begin{tabular}{|| c | c | c | c | c | c | p{3cm} | p{2cm} ||} 
+  \begin{tabular}{|| c | c | c | c | c | c | p{2cm} | p{2cm} | p{2cm} ||}
   \hline
   \rowcolor{Gray}
-  \multicolumn{3}{||c|}{\textbf{WYJAZD}}&\multicolumn{3}{|c|}{\textbf{PRZYJAZD}}& \textbf{Środek} & \textbf{Koszty} \\
+  \multicolumn{3}{||c|}{\textbf{WYJAZD}}&\multicolumn{3}{|c|}{\textbf{PRZYJAZD}}& \textbf{Środek} & \textbf{Koszty} & \textbf{Koszty w PLN} \\
   \hline
-  \textbf{Miejscowość} & \textbf{Data} & \textbf{Godzina} & \textbf{Miejscowość} & \textbf{Data} & \textbf{Godzina} & \multicolumn{1}{a|}{} & \multicolumn{1}{a||}{} \\
+  \textbf{Miejscowość} & \textbf{Data} & \textbf{Godzina} & \textbf{Miejscowość} & \textbf{Data} & \textbf{Godzina} & \multicolumn{1}{a|}{} & \multicolumn{1}{a|}{} & \multicolumn{1}{a||}{} \\
 %% for fromcity, fromdate, fromhour, tocity, todate, tohour, mean in trips
   \hline
-  \VAR{fromcity} & \VAR{fromdate} & \VAR{fromhour} & \VAR{tocity} & \VAR{todate} & \VAR{tohour} & \VAR{mean} & \\
+  \VAR{fromcity} & \VAR{fromdate} & \VAR{fromhour} & \VAR{tocity} & \VAR{todate} & \VAR{tohour} & \VAR{mean} & & \\
 %% endfor
   \hline
-  \multicolumn{6}{||c|}{} & Diety & \VAR{dietval} \VAR{dietcur} \\ 
-  \cline{7-8}
-  \multicolumn{6}{||c|}{} & Noclegi wg rachunków & \\
-  \cline{7-8}
-  \multicolumn{6}{||c|}{} & Inne wydatki wg załączników & \\
-  \cline{7-8}
-  \multicolumn{6}{||c|}{} & \multicolumn{1}{a|}{RAZEM} & \multicolumn{1}{a||}{\VAR{dietval} \VAR{dietcur}} \\
+  \multicolumn{6}{||c|}{} & Diety & \VAR{dietval} \VAR{dietcur} & \VAR{dietvalpln} PLN \\
+  \cline{7-9}
+  \multicolumn{6}{||c|}{} & Noclegi wg rachunków & & \\
+  \cline{7-9}
+  \multicolumn{6}{||c|}{} & Inne wydatki wg załączników & & \\
+  \cline{7-9}
+  \multicolumn{6}{||c|}{} & \multicolumn{1}{a|}{RAZEM} & \multicolumn{1}{a|}{\VAR{dietval} \VAR{dietcur}} & \multicolumn{1}{a||}{\VAR{dietvalpln} PLN} \\
   \hline
-  \multicolumn{8}{||l||}{\footnotesize{\textit{Słownie: \VAR{dietvalword}}}} \\
+  \multicolumn{9}{||l||}{\footnotesize{\textit{Słownie: \VAR{dietvalword}}}} \\
   \hline
 \end{tabular}
 \end{center}
