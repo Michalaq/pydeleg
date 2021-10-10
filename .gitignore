@@ -2,6 +2,7 @@
 *.pdf
 *.aux
 *.log
+/myvenv/
 __pycache__
 
 !example*

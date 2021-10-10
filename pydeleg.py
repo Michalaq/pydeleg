@@ -1,15 +1,19 @@
+import decimal
 import os
-import jinja2
-from jinja2 import Template
-from subprocess import call
 from argparse import ArgumentParser
-from pandas import Timestamp, Timedelta, to_datetime
+from subprocess import call
+
+import jinja2
+import requests
+from pandas import Timedelta, Timestamp, DateOffset, to_datetime
+
 from number_to_word import number_to_word
 
 city_diets = {
     'Amsterdam': (50, 'EUR'),
     'Paryż': (50, 'EUR'),
     'Poznań': (30, 'PLN'),
+    'Londyn': (35, 'GBP'),
 }
 
 latex_jinja_env = jinja2.Environment(
@@ -63,7 +67,33 @@ def get_params_from_file(fname):
     return dict(args), trip_args, meals
 
 
-def calc_diets(trip_args, breakfasts=0, lunches=0, dinners=0):
+def get_nbp_rate(date: Timestamp or str, currency, look_back_days=5):
+    def get_err(comment):
+        return f'[{currency}][{beg_s} - {end_s}]: {comment}'
+    date_fmt = '%Y-%m-%d'
+
+    currency = currency.lower()
+    date = Timestamp(date)
+    delta = Timedelta(f'{look_back_days} days')
+    beg, end = date - delta, date
+    beg_s, end_s = beg.strftime(date_fmt), end.strftime(date_fmt)
+    req = f'https://api.nbp.pl/api/exchangerates/rates/a/{currency}/{beg_s}/{end_s}/?format=json'
+    resp = requests.get(req)
+
+    if resp.status_code == 404:
+        raise get_err('Nothing found.')
+    if resp.status_code != 200:
+        raise get_err(f'Got non-succesful code: {resp.status_code}')
+    ret = resp.json()
+    rates = ret['rates']
+    if not rates:
+        raise get_err(f'Got code OK, but the rates are empty! Rates: {rates}')
+    rate_row = rates[-1]
+    rate_val = rate_row['mid']
+    return rate_val
+
+
+def calc_diets(convert_to_pln, trip_args, breakfasts=0, lunches=0, dinners=0):
     city = trip_args[0][-4]
     start_datetime = to_datetime(f'{trip_args[0][1]} {trip_args[0][2]}', dayfirst=True)
     end_datetime = to_datetime(f'{trip_args[-1][-3]} {trip_args[-1][-2]}', dayfirst=True)
@@ -93,25 +123,42 @@ def calc_diets(trip_args, breakfasts=0, lunches=0, dinners=0):
         diets -= 0.25 * perdiem * breakfasts
         diets -= 0.5 * perdiem * lunches
         diets -= 0.25 * perdiem * dinners
-    return diets, cur
+
+    diets_in_pln = diets
+    if not domestic and convert_to_pln:
+        # convert to pln
+        curr_exchange_rate = get_nbp_rate(end_datetime + DateOffset(1), cur)
+        decimal_diets_in_pln = decimal.Decimal(diets) * decimal.Decimal(curr_exchange_rate)
+        diets_in_pln = decimal_diets_in_pln.quantize(decimal.Decimal('.01'), decimal.ROUND_HALF_UP)
+    return diets, diets_in_pln, cur
+
+
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument('--file', type=str, required=True)
+    parser.add_argument('--convert', help='Automatically convert diets to PLN', dest='convert', action='store_true')
+    parser.set_defaults(feature=False)
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser()
-    parser.add_argument('--file', type=str, required=True)
-    args = parser.parse_args()
+    args = parse_args()
     fname = args.file
+    convert_to_pln = args.convert
+
     args, trips, meals = get_params_from_file(fname)
-    dietval, dietcur = calc_diets(trips, **meals)
+    dietval, dietval_pln, dietcur = calc_diets(convert_to_pln, trips, **meals)
     dietvalword = number_to_word(dietval, dietcur)
     params = {
         'dietval': f'{dietval:0.2f}',
+        'dietvalpln': f'{dietval_pln:0.2f}',
         'dietcur': dietcur,
         'dietvalword': dietvalword,
         'trips': trips,
         **args
     }
-    s = latex_jinja_env.get_template('./del-temp.tex').render(params)
+    latex_template = './del-temp.tex' if not convert_to_pln else './del-temp-with-pln.tex'
+    s = latex_jinja_env.get_template(latex_template).render(params)
     base, _ = os.path.splitext(os.path.basename(fname))
     path = f'/tmp/{base}.tex'
     with open(path, 'w') as f:
