@@ -1,3 +1,4 @@
+import decimal
 import os
 from argparse import ArgumentParser
 from subprocess import call
@@ -5,7 +6,6 @@ from subprocess import call
 import jinja2
 import requests
 from pandas import Timedelta, Timestamp, DateOffset, to_datetime
-import decimal
 
 from number_to_word import number_to_word
 
@@ -93,7 +93,7 @@ def get_nbp_rate(date: Timestamp or str, currency, look_back_days=5):
     return rate_val
 
 
-def calc_diets(trip_args, breakfasts=0, lunches=0, dinners=0):
+def calc_diets(convert_to_pln, trip_args, breakfasts=0, lunches=0, dinners=0):
     city = trip_args[0][-4]
     start_datetime = to_datetime(f'{trip_args[0][1]} {trip_args[0][2]}', dayfirst=True)
     end_datetime = to_datetime(f'{trip_args[-1][-3]} {trip_args[-1][-2]}', dayfirst=True)
@@ -102,7 +102,6 @@ def calc_diets(trip_args, breakfasts=0, lunches=0, dinners=0):
     full_days = period.days
     rest = period - Timedelta(days=full_days)
     diets = perdiem * full_days
-    diets_in_pln = diets
     domestic = cur.lower() == 'pln'
     if not domestic:
         if rest.components.hours <= 8:
@@ -115,10 +114,6 @@ def calc_diets(trip_args, breakfasts=0, lunches=0, dinners=0):
         diets -= 0.15 * perdiem * breakfasts
         diets -= 0.3 * perdiem * lunches
         diets -= 0.3 * perdiem * dinners
-        # convert to pln
-        curr_exchange_rate = get_nbp_rate(end_datetime + DateOffset(1), cur)
-        decimal_diets_in_pln = decimal.Decimal(diets) * decimal.Decimal(curr_exchange_rate)
-        diets_in_pln = decimal_diets_in_pln.quantize(decimal.Decimal('.01'), decimal.ROUND_HALF_UP)
     else:  # domestic
         if rest.components.hours <= 8:
             diets += 0.5 * perdiem
@@ -128,16 +123,31 @@ def calc_diets(trip_args, breakfasts=0, lunches=0, dinners=0):
         diets -= 0.25 * perdiem * breakfasts
         diets -= 0.5 * perdiem * lunches
         diets -= 0.25 * perdiem * dinners
+
+    diets_in_pln = diets
+    if not domestic and convert_to_pln:
+        # convert to pln
+        curr_exchange_rate = get_nbp_rate(end_datetime + DateOffset(1), cur)
+        decimal_diets_in_pln = decimal.Decimal(diets) * decimal.Decimal(curr_exchange_rate)
+        diets_in_pln = decimal_diets_in_pln.quantize(decimal.Decimal('.01'), decimal.ROUND_HALF_UP)
     return diets, diets_in_pln, cur
 
 
-if __name__ == '__main__':
+def parse_args():
     parser = ArgumentParser()
     parser.add_argument('--file', type=str, required=True)
-    args = parser.parse_args()
+    parser.add_argument('--convert', help='Automatically convert diets to PLN', dest='convert', action='store_true')
+    parser.set_defaults(feature=False)
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = parse_args()
     fname = args.file
+    convert_to_pln = args.convert
+
     args, trips, meals = get_params_from_file(fname)
-    dietval, dietval_pln, dietcur = calc_diets(trips, **meals)
+    dietval, dietval_pln, dietcur = calc_diets(convert_to_pln, trips, **meals)
     dietvalword = number_to_word(dietval, dietcur)
     params = {
         'dietval': f'{dietval:0.2f}',
@@ -147,7 +157,8 @@ if __name__ == '__main__':
         'trips': trips,
         **args
     }
-    s = latex_jinja_env.get_template('./del-temp.tex').render(params)
+    latex_template = './del-temp.tex' if not convert_to_pln else './del-temp-with-pln.tex'
+    s = latex_jinja_env.get_template(latex_template).render(params)
     base, _ = os.path.splitext(os.path.basename(fname))
     path = f'/tmp/{base}.tex'
     with open(path, 'w') as f:
