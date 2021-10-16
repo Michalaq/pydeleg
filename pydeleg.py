@@ -149,12 +149,14 @@ if __name__ == '__main__':
     args, trips, meals = get_params_from_file(fname)
     dietval, dietval_pln, dietcur = calc_diets(convert_to_pln, trips, **meals)
     dietvalword = number_to_word(dietval, dietcur)
+    issue_date = (to_datetime(f'{trips[-1][-3]} {trips[-1][-2]}', dayfirst=True) + DateOffset(1)).strftime('%d.%m.%Y')
     params = {
         'dietval': f'{dietval:0.2f}',
         'dietvalpln': f'{dietval_pln:0.2f}',
         'dietcur': dietcur,
         'dietvalword': dietvalword,
         'trips': trips,
+        'issuedate': issue_date,
         **args
     }
     latex_template = './del-temp.tex' if not convert_to_pln else './del-temp-with-pln.tex'
