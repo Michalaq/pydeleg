@@ -127,7 +127,7 @@ def calc_diets(convert_to_pln, trip_args, breakfasts=0, lunches=0, dinners=0):
     diets_in_pln = diets
     if not domestic and convert_to_pln:
         # convert to pln
-        curr_exchange_rate = get_nbp_rate(end_datetime + DateOffset(1), cur)
+        curr_exchange_rate = get_nbp_rate(end_datetime, cur)
         decimal_diets_in_pln = decimal.Decimal(diets) * decimal.Decimal(curr_exchange_rate)
         diets_in_pln = decimal_diets_in_pln.quantize(decimal.Decimal('.01'), decimal.ROUND_HALF_UP)
     return diets, diets_in_pln, cur
